@@ -1,0 +1,132 @@
+1
+"project applicant organization contact information requirements"
+"lead partner responsibilities project management structure"
+"organization capacity building experience requirements"
+
+2
+"project objectives goals sustainable development outcomes"
+"innovation project scope expected results deliverables"
+"project vision mission statement strategic objectives"
+
+
+3
+"programme priorities eligible regions geographic coverage"
+"target areas regional development cross-border cooperation"
+"programme specific requirements funding criteria"
+
+4
+"target groups beneficiaries stakeholder analysis"
+"end users project participants demographic analysis"
+"vulnerable groups inclusion diversity requirements"
+
+5
+"sustainable development goals SDG alignment"
+"risk assessment mitigation strategies project risks"
+"environmental social governance ESG requirements"
+
+6
+"work packages activities timeline deliverables budget"
+"project management implementation phases milestones"
+"policy compliance requirements documentation"
+
+
+
+
+Project Title: "Digital Skills for Green Innovation"
+Organization: "Innovation Hub Sweden"
+Contact Person: "Anna Andersson"
+Email: "anna.andersson@innovationhub.se"
+Phone: "+46 8 123 4567"
+
+"This project aims to develop digital competencies for green innovation among SMEs in the Nordic region. We will create online training modules, establish innovation networks, and support sustainable business model development."
+
+
+
+Step 1: Organisation & Contact
+Organisation name: GreenTech Solutions AB
+Registration number: 556789 1234
+Contact name: Erik Andersson
+E-mail: erik.andersson@greentech.se
+Phone: +46 70 987 6543
+Subject to LOU: No
+
+Step 2: Project Idea
+Current situation & challenges:
+
+The Västra Götaland region has approximately 4,500 manufacturing SMEs, with 65% lacking modern digital tools for supply chain optimization. Current logistics processes result in 15% higher transportation costs and generate an estimated 2,400 tons of unnecessary CO₂ emissions annually. Small manufacturers struggle with outdated inventory management systems, manual route planning, and limited access to real-time supplier data. This inefficiency affects competitiveness and contradicts Sweden's 2030 climate goals. Key barriers include: lack of digital literacy among staff, high implementation costs for SMEs, fragmented supplier networks, and absence of standardized digital platforms for collaboration.
+
+SMART project goal:
+
+By December 31, 2026, enable 120 manufacturing SMEs in Västra Götaland to implement AI-powered supply chain optimization tools, resulting in 25% reduction in logistics costs, 30% decrease in CO₂ emissions from transportation, and improved delivery times by 40%. The project will establish a digital platform connecting 500+ regional suppliers, train 300 employees in digital supply chain management, and create a sustainable network for ongoing collaboration and knowledge sharing among participating companies.
+
+Step 3: Programme & Geography
+
+Programme area: Smart Growth
+
+Region/municipality: Region West, Region South
+
+Step 4: Target Group
+
+Target group & need:
+
+Manufacturing SMEs (10-100 employees) in Västra Götaland region, with 40% women-owned or women in leadership positions. Companies primarily in automotive, furniture, and textile sectors need digital transformation support to optimize supply chains and reduce environmental impact while maintaining competitiveness.
+
+Previous experience:
+
+Successfully managed EU-funded 'DigitalManufacture' project 2022-2024, supporting 85 SMEs with digital transformation. Conducted 12 workshops, provided individual coaching to 60 companies, and achieved 90% satisfaction rate in post-project evaluations.
+
+
+Involvement in preparation:
+
+Conducted online survey with 148 SME responses (January 2024), organized 3 focus group sessions with 45 manufacturers, and held stakeholder meetings with regional business associations to identify specific needs and challenges.
+
+Involvement during project:
+
+Monthly advisory board meetings with 8 SME representatives, quarterly progress reviews, peer-learning workshops every 6 months, and continuous feedback collection through digital platform usage analytics and satisfaction surveys.
+
+Step 5: Agenda 2030 & Risk
+SDG goals: Goal 9, Goal 11
+Risks: Low participation, Tech delays, Budget overrun
+
+Step 6: Work Packages
+Click "Generate Work Packages" and let AI generate sample work packages, then proceed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -2,7 +2,7 @@ import streamlit as st
 import logging
 from openai import OpenAI
 from streamlit_extras.switch_page_button import switch_page
-from generateresponse import generate_from_ai, generate_work_packages_from_ai
+from generateresponse import generate_from_ai, generate_work_packages_from_ai, generate_dashboard_data
 from rag import DocumentRAG
 
 # Setup logging
@@ -459,6 +459,9 @@ def wizard_ui():
 
         elif step == len(wizard_steps) - 1 and st.button("✅ Submit"):
             with st.spinner("Finalizing all content with AI..."):
+                # First ensure all individual steps are generated
+                all_contexts = {}
+                
                 for i, label in enumerate(wizard_steps):
                     if label not in st.session_state.generated_data:
                         user_input_obj = st.session_state.user_data.get(label, {})
@@ -474,13 +477,38 @@ def wizard_ui():
                         
                         # Get context from relevant documents
                         context = get_context_from_documents(i, search_query.strip())
+                        all_contexts[label] = context
                         
                         # Generate AI response with context
                         ai_data = generate_from_ai(label, user_input_obj, context)
                         st.session_state.generated_data[label] = ai_data
                         section_name = section_mapping.get(i, label)
                         st.session_state.edited_sections[section_name] = ai_data
+                    else:
+                        # Get context for existing data too for dashboard generation
+                        user_input_obj = st.session_state.user_data.get(label, {})
+                        search_query = ""
+                        if isinstance(user_input_obj, dict):
+                            for key, value in user_input_obj.items():
+                                if isinstance(value, str) and value.strip():
+                                    search_query += f"{value} "
+                                elif isinstance(value, list):
+                                    search_query += " ".join([str(v) for v in value if v]) + " "
+                        context = get_context_from_documents(i, search_query.strip())
+                        all_contexts[label] = context
 
+                # Generate comprehensive dashboard data using all wizard data and contexts
+                st.info("🔄 Generating comprehensive dashboard content from all wizard steps...")
+                combined_wizard_data = {
+                    "user_inputs": st.session_state.user_data,
+                    "generated_responses": st.session_state.generated_data,
+                    "edited_sections": st.session_state.edited_sections
+                }
+                
+                dashboard_data = generate_dashboard_data(combined_wizard_data, all_contexts)
+                st.session_state["dashboard_data"] = dashboard_data
+                
                 st.session_state["wizard_complete"] = True
+                st.success("✅ Dashboard data successfully generated and ready for review!")
 
             st.rerun()
