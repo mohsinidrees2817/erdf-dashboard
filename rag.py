@@ -283,71 +283,36 @@ class DocumentRAG:
             # Get query embedding
             query_embedding = self.get_embedding(query)
             
-            # If namespace is specified, search only in that namespace
-            if namespace and namespace.strip():
-                search_kwargs = {
-                    "vector": query_embedding,
-                    "top_k": top_k,
-                    "include_metadata": True,
-                    "namespace": namespace
-                }
-                logger.info(f"Searching in namespace: {namespace}")
-                results = self.index.query(**search_kwargs)
-                
-                # Format results
-                formatted_results = []
-                for match in results.matches:
-                    formatted_results.append({
-                        "id": match.id,
-                        "score": match.score,
-                        "text": match.metadata.get("chunk_text", ""),
-                        "document_name": match.metadata.get("document_name", ""),
-                        "chunk_index": match.metadata.get("chunk_index", 0),
-                        "namespace": match.metadata.get("namespace", namespace)
-                    })
-                
-                logger.info(f"Found {len(formatted_results)} results for query: '{query}'")
-                return formatted_results
+            # Search in Pinecone
+            search_kwargs = {
+                "vector": query_embedding,
+                "top_k": top_k,
+                "include_metadata": True
+            }
             
+            # Add namespace filter if specified
+            if namespace and namespace.strip():
+                search_kwargs["namespace"] = namespace
+                logger.info(f"Searching in namespace: {namespace}")
             else:
-                # Cross-namespace search: search each namespace individually then combine results
                 logger.info("Searching across all namespaces")
-                all_results = []
-                
-                # Get all available namespaces
-                available_namespaces = self.get_namespaces()
-                
-                # Search in each namespace
-                for ns in available_namespaces:
-                    try:
-                        search_kwargs = {
-                            "vector": query_embedding,
-                            "top_k": top_k,
-                            "include_metadata": True,
-                            "namespace": ns
-                        }
-                        results = self.index.query(**search_kwargs)
-                        
-                        # Add namespace results to combined list
-                        for match in results.matches:
-                            all_results.append({
-                                "id": match.id,
-                                "score": match.score,
-                                "text": match.metadata.get("chunk_text", ""),
-                                "document_name": match.metadata.get("document_name", ""),
-                                "chunk_index": match.metadata.get("chunk_index", 0),
-                                "namespace": match.metadata.get("namespace", ns)
-                            })
-                    except Exception as e:
-                        logger.warning(f"Error searching namespace {ns}: {e}")
-                        continue
-                
-                # Sort all results by score (highest first) and limit to top_k
-                all_results.sort(key=lambda x: x["score"], reverse=True)
-                final_results = all_results[:top_k]
-                
-                logger.info(f"Found {len(final_results)} results for query: '{query}'")
-                return final_results
+            
+            results = self.index.query(**search_kwargs)
+            
+            # Format results
+            formatted_results = []
+            for match in results.matches:
+                formatted_results.append({
+                    "id": match.id,
+                    "score": match.score,
+                    "text": match.metadata.get("chunk_text", ""),
+                    "document_name": match.metadata.get("document_name", ""),
+                    "chunk_index": match.metadata.get("chunk_index", 0),
+                    "namespace": match.metadata.get("namespace", "")
+                })
+            
+            logger.info(f"Found {len(formatted_results)} results for query: '{query}'")
+            return formatted_results
             
         except Exception as e:
             logger.error(f"Error searching documents: {e}")
