@@ -53,7 +53,7 @@ def parse_date_safe(s):
 
 def get_prefill_value(section, label):
     """
-    Get the prefill value for a form field from the wizard session data.
+    Get the prefill value for a form field from the wizard session data or structured dashboard data.
     
     Args:
         section (str): The current section name
@@ -62,7 +62,97 @@ def get_prefill_value(section, label):
     Returns:
         str: The prefill value or empty string if not found
     """
-    # Look up the field mapping to find corresponding wizard data
+    # First, check if we have structured dashboard data
+    if "dashboard_data" in st.session_state and st.session_state.dashboard_data:
+        dashboard_data = st.session_state.dashboard_data
+        
+        # Map section/label to dashboard data fields - COMPREHENSIVE MAPPING
+        dashboard_field_mapping = {
+            # Overview Section - EXPANDED
+            ("Overview", "Project name"): getattr(dashboard_data, 'project_overview', ''),
+            ("Overview", "Describe the support scheme for the framework project"): getattr(dashboard_data, 'support_scheme_description', ''),
+            ("Overview", "Summarize the project"): getattr(dashboard_data, 'project_summary', ''),
+            
+            # Project Owner Section - EXPANDED  
+            ("Project Owner", "Legal code / Form"): getattr(dashboard_data, 'legal_code_form', ''),
+            ("Project Owner", "Industry code/name"): getattr(dashboard_data, 'industry_code_name', ''),
+            ("Project Owner", "Country"): getattr(dashboard_data, 'country', ''),
+            ("Project Owner", "VAT registration number (optional)"): getattr(dashboard_data, 'vat_registration_number', ''),
+            ("Project Owner", "Bank/Plusgiro account number"): getattr(dashboard_data, 'bank_account_number', ''),
+            
+            # Project Partner Section - EXPANDED
+            ("Project Partner", "Organization number"): getattr(dashboard_data, 'partner_org_number', ''),
+            ("Project Partner", "Name"): getattr(dashboard_data, 'partner_name', ''),
+            ("Project Partner", "post code"): getattr(dashboard_data, 'partner_post_code', ''),
+            ("Project Partner", "visiting adress"): getattr(dashboard_data, 'partner_visiting_address', ''),
+            ("Project Partner", "city"): getattr(dashboard_data, 'partner_city', ''),
+            ("Project Partner", "industry code"): getattr(dashboard_data, 'partner_industry_code', ''),
+            ("Project Partner", "VAT registration number (optional)"): getattr(dashboard_data, 'partner_vat_number', ''),
+            
+            # Challenges and Needs - EXPANDED
+            ("Challenges and Needs", "Briefly describe your project goal. The project goal should describe the state that has been achieved at the end of the project. It should have a clear connection to the specific objective in the call."): getattr(dashboard_data, 'project_objectives', ''),
+            ("Challenges and Needs", "Which challenge in the call for proposals will the project contribute to solving?"): getattr(dashboard_data, 'identified_challenges', ''),
+            ("Challenges and Needs", "Describe the current situation that the project will contribute to changing."): getattr(dashboard_data, 'current_situation', ''),
+            ("Challenges and Needs", "Justify the choice of Agenda 2030 goals."): getattr(dashboard_data, 'agenda_2030_justification', ''),
+            
+            # Target Group - EXPANDED
+            ("Target Group", "Describe the project's target group and their needs"): getattr(dashboard_data, 'target_group_description', ''),
+            ("Target Group", "Describe your experience with the target group. You can give examples of previous activities and projects involving this group. Please also describe if there are other organizations in the region that work with your target group."): getattr(dashboard_data, 'beneficiary_analysis', ''),
+            ("Target Group", "Describe how the target group has been included in the project preparations. Please also describe if there are representatives of the target group in the project's management and steering group."): getattr(dashboard_data, 'stakeholder_engagement', ''),
+            ("Target Group", "Describe how you will ensure the project's activities reach the target group. Please also describe how you will evaluate the target group's needs within the project."): getattr(dashboard_data, 'stakeholder_engagement', ''),
+            ("Target Group", "In what way will your work packages impact the global goals? What risks of goal conflicts have you identified? And if so, how will you manage the identified goal conflicts?"): getattr(dashboard_data, 'target_group_global_goals_impact', ''),
+            
+            # Activities Section - EXPANDED
+            ("Activities", "Description of activity"): getattr(dashboard_data, 'activity_summary', ''),
+            ("Activities", "Description how the work package contributes to the project goal"): getattr(dashboard_data, 'implementation_plan', ''),
+            ("Activities", "Name of the work Package"): getattr(dashboard_data, 'work_package_name', ''),
+            ("Activities", "Name of activity"): getattr(dashboard_data, 'activity_name', ''),
+            ("Activities", "how will your work packages impact to global goals"): getattr(dashboard_data, 'work_package_global_goals_impact', ''),
+            
+            # Expected Results - EXPANDED
+            ("Expected Results", "Expected results at the end of the project period"): getattr(dashboard_data, 'expected_results', ''),
+            ("Expected Results", "Expected long-term results (impact) of the project"): getattr(dashboard_data, 'impact_indicators', ''),
+            ("Expected Results", "Where will the results arise?"): getattr(dashboard_data, 'results_location', ''),
+            ("Expected Results", "Capacity/Ability - what will the target group or target object gain access to"): getattr(dashboard_data, 'capacity_ability_gains', ''),
+            ("Expected Results", "What changed behaviors are the strengthened capabilities expected to lead to in the target group or target object?"): getattr(dashboard_data, 'behavioral_changes', ''),
+            ("Expected Results", "Target Value"): getattr(dashboard_data, 'target_value', ''),
+            ("Expected Results", "remarks"): getattr(dashboard_data, 'results_remarks', ''),
+            
+            # Organisation - EXPANDED  
+            ("Organisation", "Describe the project organization and how it is managed, including:\n- Structure and reporting of the project organization.\n- The main responsible party's capacity to implement the project.\n- Will the project have a steering group or similar function? If so, describe the intended members and their mandates for managing project results.\nIf your project includes activities aimed at companies, briefly describe your previous experience of working with and reporting on activities that constitute support to companies under de minimis aid and state aid rules."): getattr(dashboard_data, 'organizational_structure', ''),
+            ("Organisation", "Applied support cannot fund activities that are part of your ordinary operations. Please describe:\n- How your project activities differ from your organization's ordinary work.\n- If similar activities are ongoing, describe how your project complements what already exists and how you will interact with those involved.\n- How the project's activities and results will be anchored and utilized after the project period ends."): getattr(dashboard_data, 'management_capacity', ''),
+            ("Organisation", "Describe how you will strive for the most gender-balanced internal organization possible and how your decision-making processes will enable an inclusive culture where different voices are heard."): getattr(dashboard_data, 'inclusive_culture_approach', ''),
+            ("Organisation", "How will the project's organization be structured to implement the project?"): getattr(dashboard_data, 'project_organization_structure', ''),
+            ("Organisation", "What other similar projects or activities are you aware of?"): getattr(dashboard_data, 'similar_projects_awareness', ''),
+            ("Organisation", "How will you internally in the project organization work for an inclusive culture for equal opportunities to influence the project's direction and results?"): getattr(dashboard_data, 'inclusive_culture_approach', ''),
+            ("Organisation", "Describe what sustainability expertise exists within the project organization, or is intended to be recruited for the project?"): getattr(dashboard_data, 'sustainability_expertise', ''),
+            ("Organisation", "Will you, in the implementation of your project, work with other actors than those who are part of your project organization?"): getattr(dashboard_data, 'external_collaboration', ''),
+            ("Organisation", "Describe what kind of work will be carried out and with which actors, and how it will contribute to the project's implementation."): getattr(dashboard_data, 'collaboration_description', ''),
+            ("Organisation", "Are you seeking support for activities that contribute to the implementation of the Baltic Sea Strategy?"): getattr(dashboard_data, 'baltic_sea_strategy', ''),
+            ("Organisation", "How does the collaboration contribute to the goals of the Baltic Sea Strategy?"): getattr(dashboard_data, 'baltic_sea_contribution', ''),
+            
+            # Working Method - EXPANDED
+            ("Working Method", "Describe what sustainability expertise exists within the project organization, or is intended to be recruited for the project?"): getattr(dashboard_data, 'sustainability_expertise', ''),
+            ("Working Method", "How have you ensured in the project planning that you have the ability to report and account for costs and activities in the project?"): getattr(dashboard_data, 'reporting_capability', ''),
+            ("Working Method", "How are you going to work with communication?"): getattr(dashboard_data, 'communication_approach', ''),
+            ("Working Method", "Do you have a documented routine for the collection and reporting of gender-disaggregated statistics?"): getattr(dashboard_data, 'gender_statistics_routine', ''),
+            ("Working Method", "Will you follow up and report on the gender distribution of participants to the Swedish Agency for Economic and Regional Development?"): getattr(dashboard_data, 'gender_reporting_commitment', ''),
+            ("Working Method", "How will you work with procurement in the project?"): getattr(dashboard_data, 'procurement_approach', ''),
+            ("Working Method", "How have you ensured the project's co-financing and management of the project's liquidity?"): getattr(dashboard_data, 'co_financing_management', ''),
+            ("Working Method", "What risks have you identified in the project and what measures do you propose?"): getattr(dashboard_data, 'risk_identification_measures', ''),
+            ("Working Method", "Describe, based on your current guidelines, how you will take these into account in your project?"): getattr(dashboard_data, 'guidelines_compliance', ''),
+            ("Working Method", "Describe how you will work to document, disseminate, and utilize results during the project period? Also describe how you will ensure that the results are utilized during the project period?"): getattr(dashboard_data, 'results_documentation_utilization', ''),
+            
+            # Budget Section - EXPANDED
+            ("Budget", "Total project cost (SEK)"): getattr(dashboard_data, 'budget_overview', ''),
+        }
+        
+        # Check if we have a dashboard field mapping for this section/label
+        dashboard_value = dashboard_field_mapping.get((section, label))
+        if dashboard_value:
+            return str(dashboard_value)
+    
+    # Fallback to original field mapping logic
     mapping = field_mapping.get((section, label))
     if mapping:
         wizard_step, wizard_key = mapping
@@ -210,6 +300,10 @@ def dashboard_ui():
 
     # Display the main page title based on selected section
     st.title(f"{st.session_state.selected_section}")
+    
+    # Show subtle AI auto-fill information if dashboard data is available
+    if "dashboard_data" in st.session_state and st.session_state.dashboard_data:
+        st.info("🤖 Some fields have been auto-filled with AI-generated content based on your wizard responses. You can edit any field as needed.")
 
     # Function to add copy icon next to field labels
     def with_copy_button(field_label, field_id):
@@ -251,6 +345,14 @@ def dashboard_ui():
 
         # Fetch prefill value from wizard data if available
         prefill_val = get_prefill_value(section, label)
+        
+        # Check if this field was auto-filled with AI-generated content
+        is_ai_generated = (
+            "dashboard_data" in st.session_state 
+            and st.session_state.dashboard_data 
+            and prefill_val is not None
+            and str(prefill_val).strip() != ""
+        )
 
         # --- Info arrow logic: shows expandable info if available ---
         arrow_key = f"arrow_{exp_key}"  # Key for the expand/collapse arrow button
@@ -274,7 +376,9 @@ def dashboard_ui():
             with col1:
                 # Show label if appropriate
                 if show_label and label:
-                    st.markdown(f"**{label}**")
+                    # Add AI indicator if content is auto-generated
+                    ai_indicator = " 🤖✨" if is_ai_generated else ""
+                    st.markdown(f"**{label}{ai_indicator}**")
             with col2:
                 # Toggle arrow direction based on expand state
                 arrow = "▼" if not exp_state else "▲"
@@ -287,7 +391,9 @@ def dashboard_ui():
                 st.info(info)
         elif show_label and label:
             # Show label without arrow if no expandable info
-            st.markdown(f"**{label}**")
+            # Add AI indicator if content is auto-generated
+            ai_indicator = " 🤖✨" if is_ai_generated else ""
+            st.markdown(f"**{label}{ai_indicator}**")
 
         # ------------- Render different widget types with prefill values ---------------
         
