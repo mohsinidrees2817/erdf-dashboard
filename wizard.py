@@ -1,29 +1,97 @@
 import streamlit as st
+import logging
 from openai import OpenAI
 from streamlit_extras.switch_page_button import switch_page
 from generateresponse import generate_from_ai, generate_work_packages_from_ai
+from rag import DocumentRAG
+
+# Setup logging
+logger = logging.getLogger(__name__)
 
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 wizard_steps = [
     "1 - Organisation & contact",
-    "2 - Project idea",
+    "2 - Project idea", 
     "3 - Programme & geography",
     "4 - Target group",
     "5 - Agenda 2030 & risk",
-    "6 - Work-package generator",
-    "7 - Policies & sign-off",
+    "6 - Work-package generator & Policies",
 ]
 
+# Updated section mapping for 6 steps (0-5 index)
 section_mapping = {
     0: "Project Summary",
-    1: "Challenges and Needs",
+    1: "Challenges and Needs", 
     2: "Target Group",
     3: "Organisation Structure",
     4: "Risk Analysis",
-    5: "Communication Plan",
-    6: "Internal Policies",
+    5: "Communication Plan & Policies",
 }
+
+# Step to document namespace mapping for RAG retrieval
+step_to_namespace_mapping = {
+    0: ["section_1_general_project_and_applicant_information"],
+    1: ["section_2_project_scope_and_goals"],
+    2: ["section_3_current_situation_and_needs_analysis"], 
+    3: ["section_4_target_groups_and_their_needs"],
+    4: ["section_5_6_organisation_risk_and_policy_communication"],
+    5: [
+        "section_7_time_plan_activities_and_budget", 
+        "section_5_6_organisation_risk_and_policy_communication",
+        "examples_work_packages"  # NEW: Added examples document for work packages
+    ]
+}
+
+
+def get_context_from_documents(step: int, user_input_text: str) -> str:
+    """
+    Retrieve relevant context from classification documents based on wizard step.
+    
+    Args:
+        step: Current wizard step (0-5)
+        user_input_text: User's input text to search for relevant content
+    
+    Returns:
+        str: Combined relevant context from documents
+    """
+    try:
+        # Initialize RAG system
+        rag = DocumentRAG()
+        
+        # Get namespaces for this step
+        namespaces = step_to_namespace_mapping.get(step, [])
+        
+        if not namespaces:
+            logger.warning(f"No namespaces found for step {step}")
+            return ""
+        
+        # Combine content from all relevant namespaces for this step
+        combined_context = ""
+        
+        for namespace in namespaces:
+            try:
+                # Search in this specific namespace
+                results = rag.search_documents(
+                    query=user_input_text,
+                    namespace=namespace,
+                    top_k=3  # Get top 3 most relevant chunks per namespace
+                )
+                
+                if results:
+                    combined_context += f"\n--- Context from {namespace.replace('_', ' ').title()} ---\n"
+                    for result in results:
+                        combined_context += f"{result['text']}\n\n"
+                
+            except Exception as e:
+                logger.error(f"Error searching namespace {namespace}: {e}")
+                continue
+        
+        return combined_context.strip()
+        
+    except Exception as e:
+        logger.error(f"Error retrieving context for step {step}: {e}")
+        return ""
 
 
 def info_arrow(label, info, show_label=True, arrow_key=None, exp_key=None):
@@ -331,20 +399,9 @@ def wizard_ui():
         user_input_obj = {"work_packages": packages}
 
     elif step == 6:
-        # Step 7 – Policies & sign off
-        info_arrow(
-            "Upload any internal policies (optional)",
-            "Typical policies: environmental plan, travel policy, equality & diversity plan. If you have no files ready, you can skip uploads now and add them later.",
-            arrow_key="arrow_pol",
-            exp_key="exp_pol",
-        )
-        uploaded_files = st.file_uploader(
-            "Upload PDF/DOC files", type=["pdf", "docx"], accept_multiple_files=True
-        )
-        file_names = [f.name for f in uploaded_files] if uploaded_files else []
-        user_input_obj = {
-            "uploaded_policies": file_names,
-        }
+        # This step no longer exists - merged with step 5
+        st.error("This step has been merged with the previous step. Please go back.")
+        user_input_obj = {}
 
     # Save current step user input
     st.session_state.user_data[step_label] = user_input_obj
@@ -375,7 +432,24 @@ def wizard_ui():
     with col3:
         if step < len(wizard_steps) - 1 and st.button("Next ▶", disabled=disable_next):
             user_input_obj = st.session_state.user_data[step_label]
-            ai_data = generate_from_ai(step_label, user_input_obj)
+            
+            # Create search query from user input for RAG context retrieval
+            with st.spinner("Retrieving relevant context from documents..."):
+                # Combine all user input text to create search query
+                search_query = ""
+                if isinstance(user_input_obj, dict):
+                    for key, value in user_input_obj.items():
+                        if isinstance(value, str) and value.strip():
+                            search_query += f"{value} "
+                        elif isinstance(value, list):
+                            search_query += " ".join([str(v) for v in value if v]) + " "
+                
+                # Get context from relevant documents
+                context = get_context_from_documents(step, search_query.strip())
+                
+                # Generate AI response with context
+                ai_data = generate_from_ai(step_label, user_input_obj, context)
+                
             st.session_state.generated_data[step_label] = ai_data
             section_name = section_mapping.get(step, step_label)
             st.session_state.edited_sections[section_name] = ai_data
@@ -388,7 +462,21 @@ def wizard_ui():
                 for i, label in enumerate(wizard_steps):
                     if label not in st.session_state.generated_data:
                         user_input_obj = st.session_state.user_data.get(label, {})
-                        ai_data = generate_from_ai(label, user_input_obj)
+                        
+                        # Create search query for final processing
+                        search_query = ""
+                        if isinstance(user_input_obj, dict):
+                            for key, value in user_input_obj.items():
+                                if isinstance(value, str) and value.strip():
+                                    search_query += f"{value} "
+                                elif isinstance(value, list):
+                                    search_query += " ".join([str(v) for v in value if v]) + " "
+                        
+                        # Get context from relevant documents
+                        context = get_context_from_documents(i, search_query.strip())
+                        
+                        # Generate AI response with context
+                        ai_data = generate_from_ai(label, user_input_obj, context)
                         st.session_state.generated_data[label] = ai_data
                         section_name = section_mapping.get(i, label)
                         st.session_state.edited_sections[section_name] = ai_data

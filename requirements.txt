@@ -5,3 +5,6 @@ bcrypt
 python-docx
 OpenAI
 streamlit_extras
+pinecone-client
+docx2txt
+pinecone

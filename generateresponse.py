@@ -47,7 +47,7 @@ class AIAgenda2030Risk(BaseModel):
     investment_attestations: str
 
 
-# Step 6 - Work-package generator
+# Step 6 - Work-package generator & Policies (Merged)
 class AIWorkPackage(BaseModel):
     name: str
     purpose: str
@@ -58,26 +58,32 @@ class AIWorkPackage(BaseModel):
     kpi: Optional[str] = None
 
 
-class AIWorkPackageGenerator(BaseModel):
+class AIWorkPackageGeneratorAndPolicies(BaseModel):
     work_packages: List[AIWorkPackage]
-
-
-# Step 7 - Policies & sign-off
-class AIPoliciesSignOff(BaseModel):
     policy_section: str
     reporting_routines: str
     procurement_routines: str
 
 
-def generate_from_ai(step_name: str, user_input: str):
+def generate_from_ai(step_name: str, user_input: dict, context: str = ""):
+    """
+    Generate AI response for wizard step with optional RAG context.
+    
+    Args:
+        step_name: Name of the wizard step
+        user_input: User's input data for the step (dictionary)
+        context: Optional context retrieved from classification documents
+    
+    Returns:
+        Structured AI response based on step requirements
+    """
     step_model_map = {
         "1 - Organisation & contact": AIOrganisationContact,
         "2 - Project idea": AIProjectIdea,
         "3 - Programme & geography": AIProgrammeGeography,
-        "4 - Target group one-liner": AITargetGroup,
+        "4 - Target group": AITargetGroup,
         "5 - Agenda 2030 & risk": AIAgenda2030Risk,
-        "6 - Work-package generator": AIWorkPackageGenerator,
-        "7 - Policies & sign-off": AIPoliciesSignOff,
+        "6 - Work-package generator & Policies": AIWorkPackageGeneratorAndPolicies,  # Updated for merged step
     }
 
     model_class = step_model_map.get(step_name)
@@ -85,26 +91,31 @@ def generate_from_ai(step_name: str, user_input: str):
         return f"❌ Error: Unknown step '{step_name}'"
 
     try:
-        response = client.responses.parse(
+        # Prepare the prompt with context if available
+        user_prompt = f"User input for step '{step_name}':\n{str(user_input)}"
+        
+        if context and context.strip():
+            user_prompt += f"\n\nRelevant context from classification documents:\n{context}"
+            user_prompt += "\n\nPlease use the provided context to inform your response and ensure consistency with the document requirements."
+        
+        response = client.beta.chat.completions.parse(
             model="gpt-4o-2024-08-06",
-            input=[
+            messages=[
                 {
                     "role": "system",
-                    "content": "You are a helpful assistant writing structured ERDF application sections.",
+                    "content": "You are a helpful assistant writing structured ERDF application sections. Use any provided context from classification documents to ensure your response aligns with the required format and standards.",
                 },
                 {
                     "role": "user",
-                    "content": f"User input for step '{step_name}':\n{user_input}",
+                    "content": user_prompt,
                 },
             ],
-            text_format=model_class,
+            response_format=model_class,
             temperature=0.6,
             max_tokens=1000,
         )
-        print(
-            "response: ",
-        )
-        return response.output_parsed  # returns a structured Pydantic object
+        
+        return response.choices[0].message.parsed  # returns a structured Pydantic object
     except Exception as e:
         return f"❌ Error during AI generation: {e}"
 
