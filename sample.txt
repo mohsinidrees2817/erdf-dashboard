@@ -53,11 +53,11 @@ Subject to LOU: No
 Step 2: Project Idea
 Current situation & challenges:
 
-The Västra Götaland region has approximately 4,500 manufacturing SMEs, with 65% lacking modern digital tools for supply chain optimization. Current logistics processes result in 15% higher transportation costs and generate an estimated 2,400 tons of unnecessary CO₂ emissions annually. Small manufacturers struggle with outdated inventory management systems, manual route planning, and limited access to real-time supplier data. This inefficiency affects competitiveness and contradicts Sweden's 2030 climate goals. Key barriers include: lack of digital literacy among staff, high implementation costs for SMEs, fragmented supplier networks, and absence of standardized digital platforms for collaboration.
+  The Västra Götaland region has approximately 4,500 manufacturing SMEs, with 65% lacking modern digital tools for supply chain optimization. Current logistics processes result in 15% higher transportation costs and generate an estimated 2,400 tons of unnecessary CO₂ emissions annually. Small manufacturers struggle with outdated inventory management systems, manual route planning, and limited access to real-time supplier data. This inefficiency affects competitiveness and contradicts Sweden's 2030 climate goals. Key barriers include: lack of digital literacy among staff, high implementation costs for SMEs, fragmented supplier networks, and absence of standardized digital platforms for collaboration.
 
 SMART project goal:
 
-By December 31, 2026, enable 120 manufacturing SMEs in Västra Götaland to implement AI-powered supply chain optimization tools, resulting in 25% reduction in logistics costs, 30% decrease in CO₂ emissions from transportation, and improved delivery times by 40%. The project will establish a digital platform connecting 500+ regional suppliers, train 300 employees in digital supply chain management, and create a sustainable network for ongoing collaboration and knowledge sharing among participating companies.
+  By December 31, 2026, enable 120 manufacturing SMEs in Västra Götaland to implement AI-powered supply chain optimization tools, resulting in 25% reduction in logistics costs, 30% decrease in CO₂ emissions from transportation, and improved delivery times by 40%. The project will establish a digital platform connecting 500+ regional suppliers, train 300 employees in digital supply chain management, and create a sustainable network for ongoing collaboration and knowledge sharing among participating companies.
 
 Step 3: Programme & Geography
 
@@ -69,20 +69,20 @@ Step 4: Target Group
 
 Target group & need:
 
-Manufacturing SMEs (10-100 employees) in Västra Götaland region, with 40% women-owned or women in leadership positions. Companies primarily in automotive, furniture, and textile sectors need digital transformation support to optimize supply chains and reduce environmental impact while maintaining competitiveness.
+   Manufacturing SMEs (10-100 employees) in Västra Götaland region, with 40% women-owned or women in leadership positions. Companies primarily in automotive, furniture, and textile sectors need digital transformation support to optimize supply chains and reduce environmental impact while maintaining competitiveness.
 
 Previous experience:
 
-Successfully managed EU-funded 'DigitalManufacture' project 2022-2024, supporting 85 SMEs with digital transformation. Conducted 12 workshops, provided individual coaching to 60 companies, and achieved 90% satisfaction rate in post-project evaluations.
+   Successfully managed EU-funded 'DigitalManufacture' project 2022-2024, supporting 85 SMEs with digital transformation. Conducted 12 workshops, provided individual coaching to 60 companies, and achieved 90% satisfaction rate in post-project evaluations.
 
 
 Involvement in preparation:
 
-Conducted online survey with 148 SME responses (January 2024), organized 3 focus group sessions with 45 manufacturers, and held stakeholder meetings with regional business associations to identify specific needs and challenges.
+   Conducted online survey with 148 SME responses (January 2024), organized 3 focus group sessions with 45 manufacturers, and held stakeholder meetings with regional business associations to identify specific needs and challenges.
 
 Involvement during project:
 
-Monthly advisory board meetings with 8 SME representatives, quarterly progress reviews, peer-learning workshops every 6 months, and continuous feedback collection through digital platform usage analytics and satisfaction surveys.
+   Monthly advisory board meetings with 8 SME representatives, quarterly progress reviews, peer-learning workshops every 6 months, and continuous feedback collection through digital platform usage analytics and satisfaction surveys.
 
 Step 5: Agenda 2030 & Risk
 SDG goals: Goal 9, Goal 11
@@ -92,7 +92,7 @@ Step 6: Work Packages
 Click "Generate Work Packages" and let AI generate sample work packages, then proceed.
 
 
-
+https://github.com/mohsinidrees2817/erdf-dashboard
 
 
 

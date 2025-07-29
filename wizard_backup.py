@@ -94,54 +94,6 @@ def get_context_from_documents(step: int, user_input_text: str) -> str:
         return ""
 
 
-def get_progressive_context(current_step: int, user_input_text: str) -> dict:
-    """
-    Build progressive context that includes:
-    1. Current step's document context
-    2. All previous steps' LLM responses
-    3. Current step's user input
-    
-    Returns:
-        dict: Contains current_context, previous_responses, and combined_context
-    """
-    try:
-        # Get current step's document context
-        current_context = get_context_from_documents(current_step, user_input_text)
-        
-        # Get all previous steps' LLM responses
-        previous_responses = ""
-        for i in range(current_step):
-            step_label = wizard_steps[i]
-            if step_label in st.session_state.generated_data:
-                previous_responses += f"\n--- {step_label} (Previous Response) ---\n"
-                previous_responses += str(st.session_state.generated_data[step_label])
-                previous_responses += "\n\n"
-        
-        # Combine everything for comprehensive context
-        combined_context = ""
-        if previous_responses:
-            combined_context += "=== PREVIOUS WIZARD STEPS CONTEXT ===\n"
-            combined_context += previous_responses
-        
-        if current_context:
-            combined_context += "=== CURRENT STEP DOCUMENT CONTEXT ===\n"
-            combined_context += current_context
-        
-        return {
-            "current_context": current_context,
-            "previous_responses": previous_responses,
-            "combined_context": combined_context
-        }
-        
-    except Exception as e:
-        logger.error(f"Error building progressive context for step {current_step}: {e}")
-        return {
-            "current_context": "",
-            "previous_responses": "",
-            "combined_context": ""
-        }
-
-
 def info_arrow(label, info, show_label=True, arrow_key=None, exp_key=None):
     # exp_key: unique for field/section
     if arrow_key is None:
@@ -184,7 +136,6 @@ def wizard_ui():
         st.session_state.user_data = {}
         st.session_state.generated_data = {}
         st.session_state.edited_sections = {}
-        st.session_state.step_contexts = {}  # Store individual step contexts
 
     step = st.session_state.step
     step_label = wizard_steps[step]
@@ -378,7 +329,7 @@ def wizard_ui():
         user_input_obj = {"sdg_goals": sdgs, "risks": risks}
 
     elif step == 5:
-        # Step 5 – Work packages (PREDEFINED SWEDISH)
+        # Step 6 – Work packages (DETAILED)
         info_arrow(
             "Click “Generate work packages”. Review the AI suggestions; drag to reorder, edit titles or descriptions, delete, or add your own.",
             "Work packages structure the project. The AI will propose 3–5 packages with purpose, activities, deliverables and timeline. You can rename, shorten or expand them as needed before saving.",
@@ -389,65 +340,63 @@ def wizard_ui():
         if "work_packages" not in st.session_state:
             st.session_state.work_packages = []
 
-        st.write("#### Välj relevanta arbetspaket (Work Packages)")
-        st.write("Markera de arbetspaket som är mest relevanta för ditt projekt:")
+        if st.button("Generate Work Packages "):
+            dummy_packages = generate_work_packages_from_ai("test", test_mode=True)
+            st.session_state.work_packages = dummy_packages
+            st.success("Dummy work packages loaded!")
 
-        # Predefined Swedish work packages (AP 1-15)
-        predefined_packages = [
-            {"id": "AP1", "name": "Projektledning och koordination", "description": "Övergripande projektledning, koordination av aktiviteter och kommunikation mellan partners"},
-            {"id": "AP2", "name": "Forskning och utveckling", "description": "Grundläggande forskning, metodutveckling och teknisk utveckling inom projektområdet"},
-            {"id": "AP3", "name": "Pilotprojekt och demonstrationer", "description": "Genomförande av pilotprojekt för att testa och demonstrera utvecklade lösningar"},
-            {"id": "AP4", "name": "Utbildning och kompetensutveckling", "description": "Utveckling av utbildningsmaterial, kurser och kompetensutvecklingsaktiviteter"},
-            {"id": "AP5", "name": "Nätverksbyggande och samverkan", "description": "Uppbyggnad av nätverk, partnerships och samarbeten mellan olika aktörer"},
-            {"id": "AP6", "name": "Kommunikation och spridning", "description": "Kommunikationsaktiviteter, marknadsföring och spridning av projektresultat"},
-            {"id": "AP7", "name": "Analys och utvärdering", "description": "Analys av data, utvärdering av aktiviteter och bedömning av projektresultat"},
-            {"id": "AP8", "name": "Teknikutveckling och innovation", "description": "Utveckling av ny teknik, innovativa lösningar och tekniska prototyper"},
-            {"id": "AP9", "name": "Kapacitetsbyggande", "description": "Uppbyggnad av organisatorisk kapacitet och förmågor hos projektpartners"},
-            {"id": "AP10", "name": "Hållbarhetsanalys", "description": "Analys av miljömässiga, sociala och ekonomiska hållbarhetsaspekter"},
-            {"id": "AP11", "name": "Användarengagemang", "description": "Engagemang av slutanvändare, intressenter och målgrupper i projektet"},
-            {"id": "AP12", "name": "Kvalitetssäkring", "description": "Kvalitetskontroll, standardisering och säkerställande av projektleveranser"},
-            {"id": "AP13", "name": "Riskhantering", "description": "Identifiering, analys och hantering av projektrisker och utmaningar"},
-            {"id": "AP14", "name": "Ekonomisk planering", "description": "Budgetplanering, kostnadsanalys och ekonomisk uppföljning av projektet"},
-            {"id": "AP15", "name": "Resultatrapportering", "description": "Dokumentation, rapportering och presentation av projektresultat och slutsatser"}
-        ]
+        st.write("#### Work packages")
+        packages = st.session_state.work_packages
 
-        # Initialize selected work packages in session state
-        if "selected_work_packages" not in st.session_state:
-            st.session_state.selected_work_packages = []
+        # Editing interface for each package
+        for i, pkg in enumerate(packages):
+            with st.container():
+                col1, col2, col4 = st.columns([4, 6, 1])
+                with col1:
+                    pkg["name"] = st.text_input(
+                        f"Name {i+1}", value=pkg.get("name", ""), key=f"wp_name_{i}"
+                    )
+                with col2:
+                    pkg["description"] = st.text_area(
+                        f"Description {i+1}",
+                        value=pkg.get("description", ""),
+                        key=f"wp_desc_{i}",
+                        height=60,
+                    )
+                # Detect if this is a "custom" (new/blank) work package
+                is_custom = not pkg.get("name") and not pkg.get("description")
+                # with col3:
+                #     if not is_custom:
+                #         if st.button("▲", key=f"wp_up_{i}", disabled=i == 0):
+                #             packages.insert(i - 1, packages.pop(i))
+                #             st.rerun()
+                #         if st.button(
+                #             "▼", key=f"wp_down_{i}", disabled=i == len(packages) - 1
+                #         ):
+                #             packages.insert(i + 1, packages.pop(i))
+                #             st.rerun()
+                #     else:
+                #         st.write("")  # Spacer for layout
+                #         st.write("")
 
-        # Create checkboxes for each predefined work package
-        selected_packages = []
-        for pkg in predefined_packages:
-            is_selected = pkg["id"] in st.session_state.selected_work_packages
-            
-            if st.checkbox(
-                f"**{pkg['id']}: {pkg['name']}**",
-                value=is_selected,
-                key=f"wp_checkbox_{pkg['id']}",
-                help=pkg["description"]
-            ):
-                selected_packages.append({
-                    "id": pkg["id"],
-                    "name": pkg["name"],
-                    "description": pkg["description"]
-                })
-                if pkg["id"] not in st.session_state.selected_work_packages:
-                    st.session_state.selected_work_packages.append(pkg["id"])
-            else:
-                if pkg["id"] in st.session_state.selected_work_packages:
-                    st.session_state.selected_work_packages.remove(pkg["id"])
+                with col4:
+                    if st.button("❌", key=f"wp_del_{i}"):
+                        packages.pop(i)
+                        st.rerun()
 
-        # Show selected packages summary
-        if selected_packages:
-            st.write(f"**Valda arbetspaket ({len(selected_packages)}):**")
-            for pkg in selected_packages:
-                st.write(f"• **{pkg['id']}**: {pkg['name']}")
-        else:
-            st.info("Inga arbetspaket valda ännu. Välj minst ett arbetspaket för att fortsätta.")
+        # Add new work package (manual)
+        if st.button("Add Custom Work Package"):
+            packages.append(
+                {
+                    "name": "",
+                    "description": "",
+                }
+            )
+            st.rerun()
 
-        # Save selected work packages to session state in the expected format
-        st.session_state.work_packages = selected_packages
-        user_input_obj = {"work_packages": selected_packages}
+        # Save back to session
+        st.session_state.work_packages = packages
+        user_input_obj = {"work_packages": packages}
 
     elif step == 6:
         # This step no longer exists - merged with step 5
@@ -482,11 +431,11 @@ def wizard_ui():
 
     with col3:
         if step < len(wizard_steps) - 1 and st.button("Next ▶", disabled=disable_next):
-            # Generate AI response with progressive context for better continuity
             user_input_obj = st.session_state.user_data[step_label]
             
-            with st.spinner("Generating content with context from previous steps..."):
-                # Create search query from user input
+            # Create search query from user input for RAG context retrieval
+            with st.spinner("Retrieving relevant context from documents..."):
+                # Combine all user input text to create search query
                 search_query = ""
                 if isinstance(user_input_obj, dict):
                     for key, value in user_input_obj.items():
@@ -495,21 +444,15 @@ def wizard_ui():
                         elif isinstance(value, list):
                             search_query += " ".join([str(v) for v in value if v]) + " "
                 
-                # Get progressive context (includes previous responses + current documents)
-                context_data = get_progressive_context(step, search_query.strip())
+                # Get context from relevant documents
+                context = get_context_from_documents(step, search_query.strip())
                 
-                # Store individual step context
-                st.session_state.step_contexts[step_label] = {
-                    "document_context": context_data["current_context"],
-                    "progressive_context": context_data["combined_context"]
-                }
+                # Generate AI response with context
+                ai_data = generate_from_ai(step_label, user_input_obj, context)
                 
-                # Generate AI response with progressive context
-                ai_data = generate_from_ai(step_label, user_input_obj, context_data["combined_context"])
-                
-                st.session_state.generated_data[step_label] = ai_data
-                section_name = section_mapping.get(step, step_label)
-                st.session_state.edited_sections[section_name] = ai_data
+            st.session_state.generated_data[step_label] = ai_data
+            section_name = section_mapping.get(step, step_label)
+            st.session_state.edited_sections[section_name] = ai_data
 
             st.session_state.step += 1
             st.rerun()
@@ -532,51 +475,34 @@ def wizard_ui():
                                 elif isinstance(value, list):
                                     search_query += " ".join([str(v) for v in value if v]) + " "
                         
-                        # Get progressive context for this step
-                        context_data = get_progressive_context(i, search_query.strip())
-                        all_contexts[label] = context_data["combined_context"]
+                        # Get context from relevant documents
+                        context = get_context_from_documents(i, search_query.strip())
+                        all_contexts[label] = context
                         
-                        # Store individual step context
-                        st.session_state.step_contexts[label] = {
-                            "document_context": context_data["current_context"],
-                            "progressive_context": context_data["combined_context"]
-                        }
-                        
-                        # Generate AI response with progressive context
-                        ai_data = generate_from_ai(label, user_input_obj, context_data["combined_context"])
+                        # Generate AI response with context
+                        ai_data = generate_from_ai(label, user_input_obj, context)
                         st.session_state.generated_data[label] = ai_data
                         section_name = section_mapping.get(i, label)
                         st.session_state.edited_sections[section_name] = ai_data
                     else:
-                        # Use existing context if available, otherwise get new progressive context
-                        if label in st.session_state.step_contexts:
-                            all_contexts[label] = st.session_state.step_contexts[label]["progressive_context"]
-                        else:
-                            user_input_obj = st.session_state.user_data.get(label, {})
-                            search_query = ""
-                            if isinstance(user_input_obj, dict):
-                                for key, value in user_input_obj.items():
-                                    if isinstance(value, str) and value.strip():
-                                        search_query += f"{value} "
-                                    elif isinstance(value, list):
-                                        search_query += " ".join([str(v) for v in value if v]) + " "
-                            
-                            context_data = get_progressive_context(i, search_query.strip())
-                            all_contexts[label] = context_data["combined_context"]
-                            
-                            # Store individual step context
-                            st.session_state.step_contexts[label] = {
-                                "document_context": context_data["current_context"],
-                                "progressive_context": context_data["combined_context"]
-                            }
+                        # Get context for existing data too for dashboard generation
+                        user_input_obj = st.session_state.user_data.get(label, {})
+                        search_query = ""
+                        if isinstance(user_input_obj, dict):
+                            for key, value in user_input_obj.items():
+                                if isinstance(value, str) and value.strip():
+                                    search_query += f"{value} "
+                                elif isinstance(value, list):
+                                    search_query += " ".join([str(v) for v in value if v]) + " "
+                        context = get_context_from_documents(i, search_query.strip())
+                        all_contexts[label] = context
 
                 # Generate comprehensive dashboard data using all wizard data and contexts
                 st.info("🔄 Generating comprehensive dashboard content from all wizard steps...")
                 combined_wizard_data = {
                     "user_inputs": st.session_state.user_data,
                     "generated_responses": st.session_state.generated_data,
-                    "edited_sections": st.session_state.edited_sections,
-                    "step_contexts": st.session_state.step_contexts  # Include individual contexts
+                    "edited_sections": st.session_state.edited_sections
                 }
                 
                 dashboard_data = generate_dashboard_data(combined_wizard_data, all_contexts)
